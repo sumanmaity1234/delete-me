@@ -67,7 +67,7 @@ jobs:
         with:
           artifacts: "${{ github.workspace }}/${{ env.SERVICE_NAME }}/${{ matrix.name }}.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: "module1-v0.2.0"
+          tag: "${{ matrix.name }}-v1.0.0"
 #      - name: Setup ssh agent
 #        id: setup-ssh-agent
 #        if: "contains(github.event.head_commit.message, '[bump-')"
