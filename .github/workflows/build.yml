@@ -60,7 +60,7 @@ jobs:
       - name: create release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ matrix.name }}/**"
+          artifacts: "${{ matrix.name }}/*.tf"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "module1-v0.2.0"
 #      - name: Setup ssh agent
