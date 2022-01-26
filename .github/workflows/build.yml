@@ -57,10 +57,15 @@ jobs:
 #        if: ${{ steps.setup-ssh-agent.conclusion == 'success' }}
 #        run: ./run.sh tag ${{ matrix.name }} Tagged as part of pipeline process
 #        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+      - name: create zip file
+        id: create-zip
+        run: zip -r ${{ matrix.name }}.zip ${{ matrix.name }}/**
+        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
       - name: create release
+        if: ${{ steps.create-zip.conclusion == 'success' }}
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ github.workspace }}/${{ env.SERVICE_NAME }}/${{ matrix.name }}/*.tf"
+          artifacts: "${{ github.workspace }}/${{ env.SERVICE_NAME }}/${{ matrix.name }}/${{ matrix.name }}.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "module1-v0.2.0"
 #      - name: Setup ssh agent

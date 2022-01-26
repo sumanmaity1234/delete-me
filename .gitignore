@@ -36,3 +36,4 @@ terraform.rc
 
 .idea/*
 *.zip
+.DS_Store
