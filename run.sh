@@ -12,6 +12,7 @@ Usage: $0 command
 commands:
   build-matrix-config                       Build github action matrix json depends on changed files
   update-last-commit-sha                    Update commit sha in file
+  
 EOF
   exit 1
 }
