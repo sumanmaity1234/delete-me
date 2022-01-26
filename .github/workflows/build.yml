@@ -65,7 +65,7 @@ jobs:
         if: ${{ steps.create-zip.conclusion == 'success' }}
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "${{ github.workspace }}/${{ env.SERVICE_NAME }}/${{ matrix.name }}/${{ matrix.name }}.zip"
+          artifacts: "${{ github.workspace }}/${{ env.SERVICE_NAME }}/${{ matrix.name }}.zip"
           token: ${{ secrets.GITHUB_TOKEN }}
           tag: "module1-v0.2.0"
 #      - name: Setup ssh agent
