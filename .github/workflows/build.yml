@@ -52,6 +52,17 @@ jobs:
         uses: actions/checkout@v2
         with:
           path: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+#      - name: Create a new relase Tag
+#        id: create-release-tag
+#        if: ${{ steps.setup-ssh-agent.conclusion == 'success' }}
+#        run: ./run.sh tag ${{ matrix.name }} Tagged as part of pipeline process
+#        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+      - name: create release
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ matrix.name }}/**"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: "module1-v0.2.0"
 #      - name: Setup ssh agent
 #        id: setup-ssh-agent
 #        if: "contains(github.event.head_commit.message, '[bump-')"
