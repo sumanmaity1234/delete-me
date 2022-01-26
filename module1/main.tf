@@ -3,5 +3,6 @@ output "module1_hola" {
 }
 
 output "module1_hola2" {
+
   value = "hola"
 }
