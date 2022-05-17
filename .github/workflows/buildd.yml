@@ -1,0 +1,93 @@
+name: buildd-test
+
+on:
+  push:
+    branches:
+      - test
+
+env:
+  SERVICE_NAME: delete-me
+
+jobs:
+  build-matrix-config:
+    runs-on: ubuntu-20.04
+    outputs:
+      matrix: ${{ steps.matrix-json.outputs.matrix }}
+    steps:
+      - name: Checkout local repository
+        uses: actions/checkout@v2
+        with:
+          path: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+          fetch-depth: 0
+      - name: Get Date
+        id: get-date
+        run: |
+          echo "::set-output name=date::$(/bin/date -u "+%s")"
+        shell: bash
+      - name: Cache last commit sha
+        uses: pat-s/always-upload-cache@v2.1.5
+        with:
+          path: ${{ github.workspace }}/${{ env.SERVICE_NAME }}/.last_commit_sha
+          key: ${{ runner.os }}-last_commit_sha-${{ steps.get-date.outputs.date }}
+          restore-keys: |
+            ${{ runner.os }}-last_commit_sha-
+      - name: create matrix as json
+        id: matrix-json
+        run: echo "::set-output name=matrix::$( ./run.sh build-matrix-config | jq -c )"
+        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+      - name: update last commit sha
+        if: always()
+        run: ./run.sh update-last-commit-sha
+        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+
+  build:
+    name: Run build for ${{ matrix.name }}
+    runs-on: ubuntu-20.04
+    needs: [build-matrix-config]
+    strategy:
+      matrix: ${{fromJson(needs.build-matrix-config.outputs.matrix)}}
+      fail-fast: false
+    steps:
+      - name: Checkout local repository
+        uses: actions/checkout@v2
+        with:
+          path: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+#      - name: Create a new relase Tag
+#        id: create-release-tag
+#        if: ${{ steps.setup-ssh-agent.conclusion == 'success' }}
+#        run: ./run.sh tag ${{ matrix.name }} Tagged as part of pipeline process
+#        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+      - name: create zip file
+        id: create-zip
+        run: zip -r ${{ matrix.name }}.zip ${{ matrix.name }}/**
+        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+      - name: create release
+        if: ${{ steps.create-zip.conclusion == 'success' }}
+        uses: ncipollo/release-action@v1
+        with:
+          artifacts: "${{ github.workspace }}/${{ env.SERVICE_NAME }}/${{ matrix.name }}.zip"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: "${{ matrix.name }}-v1.0.0"
+#      - name: Setup ssh agent
+#        id: setup-ssh-agent
+#        if: "contains(github.event.head_commit.message, '[bump-')"
+#        uses: webfactory/ssh-agent@v0.4.1
+#        with:
+#          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+#      - name: Create a new relase Tag
+#        id: create-release-tag
+#        if: ${{ steps.setup-ssh-agent.conclusion == 'success' }}
+#        run: ./run.sh tag ${{ matrix.name }} Tagged as part of pipeline process
+#        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+#      - name: Publish jar
+#        if: ${{ steps.create-release-tag.conclusion == 'success' }}
+#        id: publish-jar
+#        run: ./run.sh publish ${{ matrix.name }}
+#        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
+#        env:
+#          PACKAGES_USER: ${{ secrets.PACKAGES_USER }}
+#          PACKAGES_SECRET: ${{ secrets.ACCESS_TOKEN }}
+#      - name: Push newly created release tag
+#        if: ${{ steps.publish-jar.conclusion == 'success' }}
+#        run: git push --tags
+#        working-directory: ${{ github.workspace }}/${{ env.SERVICE_NAME }}
